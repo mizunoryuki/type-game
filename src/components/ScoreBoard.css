@@ -1,0 +1,61 @@
+.scoreboard-container {
+  margin: 30px 0;
+}
+
+.score-section {
+  margin-bottom: 25px;
+}
+
+.score-section.next {
+  opacity: 0.6;
+}
+
+.score-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #a0a8b4;
+  text-align: left;
+}
+
+.score-display {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  min-height: 70px; /* 少し高さを確保 */
+  align-items: center;
+}
+
+.key-box {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  background-color: #4a505c; /* デフォルト */
+  color: #d1d5db;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+/* 入力済みのキー */
+.key-box.correct {
+  background-color: #61dafb;
+  color: #282c34;
+  opacity: 0.7;
+}
+
+/* ★★★ 次に押すべきキーのスタイル ★★★ */
+.key-box.next-to-press {
+  border-color: #61dafb;
+  transform: scale(1.15); /* 少し大きくする */
+  box-shadow: 0 0 15px #61dafb, 0 0 20px #61dafbaa; /* 光彩効果 */
+}
+
+/* 「NEXT」に表示されるキー */
+.key-box.future {
+  background-color: #3b4049;
+  color: #8d939c;
+}

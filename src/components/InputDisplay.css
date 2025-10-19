@@ -1,0 +1,27 @@
+.input-display-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.key-indicator {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border-bottom: 4px solid #333;
+  background-color: #e0e0e0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: all 0.1s ease;
+}
+
+.key-indicator.pressed {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  background-color: #61dafb;
+}
