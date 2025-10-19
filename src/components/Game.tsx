@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ModeSelection from './ModeSelection';
 import PlayingView from './PlayingView';
 import GameOver from './GameOver';
@@ -6,14 +6,12 @@ import GameWon from './GameWon';
 import { generateScore, KEYS } from '../utils/generateScore';
 import './Game.css';
 
-// --- 定数 ---
 const INITIAL_TIME_LIMIT = 5000;
 const TIME_DECREMENT = 200;
 const MIN_TIME_LIMIT = 1500;
 const STAGES_GOAL = 10; // ステージモードのクリア目標
 
 const Game = () => {
-  // --- State定義 ---
   const [gameMode, setGameMode] = useState<'challenge' | 'stages' | null>(null);
   const [gameState, setGameState] = useState<'waiting' | 'playing' | 'gameOver' | 'gameWon'>('waiting');
   
@@ -29,10 +27,16 @@ const Game = () => {
 
   const [missCount, setMissCount] = useState<number>(0);
 
-  // --- ゲームロジック関数 ---
+  const currentScoreRef = useRef<string[]>(currentScore);
+  const playerInputRef = useRef<string[]>(playerInput);
+  const gameStateRef = useRef<typeof gameState>(gameState);
+  const gameModeRef = useRef<typeof gameMode>(gameMode);
+  const advanceLevelRef = useRef<() => void>(() => {});
+
   const startGame = (mode: 'challenge' | 'stages') => {
     setGameMode(mode);
     setLevel(1);
+    setMissCount(0);
     const newTimeLimit = INITIAL_TIME_LIMIT;
     setTimeLimit(newTimeLimit);
     setTimeLeft(newTimeLimit);
@@ -45,6 +49,7 @@ const Game = () => {
   const advanceLevel = useCallback(() => {
     if (gameMode === 'stages' && level >= STAGES_GOAL) {
       setGameState('gameWon');
+      setPlayerInput([]);
       return;
     }
 
@@ -74,24 +79,45 @@ const Game = () => {
     return () => clearInterval(timer);
   }, [gameState, gameMode]);
 
-  // キー入力処理
+  useEffect(() => {
+    currentScoreRef.current = currentScore;
+  }, [currentScore]);
+
+  useEffect(() => {
+    playerInputRef.current = playerInput;
+  }, [playerInput]);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(() => {
+    gameModeRef.current = gameMode;
+  }, [gameMode]);
+
+  useEffect(() => {
+    advanceLevelRef.current = advanceLevel;
+  }, [advanceLevel]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameState !== 'playing') return;
+      if (gameStateRef.current !== 'playing') return;
       const key = e.key.toUpperCase();
       if (!KEYS.includes(key)) return;
 
       setLastPressedKey(key);
       setTimeout(() => setLastPressedKey(''), 200);
 
-      const newPlayerInput = [...playerInput, key];
-      
-      // キー入力が正しいかチェック
-      if (currentScore[newPlayerInput.length - 1] !== key) {
-        if (gameMode === 'challenge') {
-          setGameState('gameOver'); // チャレンジモードでは即ゲームオーバー
+      const prevInput = playerInputRef.current;
+      const newPlayerInput = [...prevInput, key];
+
+      const currScore = currentScoreRef.current;
+      // check correctness
+      if (currScore[newPlayerInput.length - 1] !== key) {
+        if (gameModeRef.current === 'challenge') {
+          setGameState('gameOver');
         } else {
-          setPlayerInput([]); // ステージモードでは入力がリセットされるだけ
+          setPlayerInput([]);
           setMissCount(prev => prev + 1);
         }
         return;
@@ -99,14 +125,14 @@ const Game = () => {
 
       setPlayerInput(newPlayerInput);
 
-      // 現在の譜面をクリアしたかチェック
-      if (newPlayerInput.length === currentScore.length) {
-        advanceLevel();
+      if (newPlayerInput.length === currScore.length) {
+        advanceLevelRef.current();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [playerInput, currentScore, advanceLevel, gameState, gameMode]);
+  }, []);
 
   if (!gameMode) {
     return <ModeSelection onStart={startGame} stagesGoal={STAGES_GOAL} />;
